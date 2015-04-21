@@ -23,5 +23,12 @@ To run the backup simply execute:
 
 If no backup location (directory where backup files are to be stored) is provided, the default path from `config.properties` will be used.
 
+#Updates
+To get the latest update of the backup script simply go to your project directory and run:
+
+```bash
+git pull
+```
+
 
 
