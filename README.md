@@ -1,4 +1,6 @@
+[![Analytics](https://ga-beacon.appspot.com/UA-59573016-4/apexbackup/README.md)](https://github.com/igrigorik/ga-beacon)
 # Oracle APEX Backup Script
+
 
 The purpose of this script is to provide a quick way to backup all of your APEX applications.
 
