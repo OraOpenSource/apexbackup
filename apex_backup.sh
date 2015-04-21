@@ -18,18 +18,49 @@ OOS_AB_BACKUP_DIR=${1:-$OOS_AB_BACKUP_DIR}
 [[ -z "$OOS_AB_REPORT_FILENAME" ]] && OOS_AB_REPORT_FILENAME=apex_backup_report.html
 
 # Note: You may not need to explicitly define these as they may already be set in OS.
-ORACLE_HOME=${ORACLE_HOME:-OOS_AB_ORACLE_HOME}
+ORACLE_HOME=${ORACLE_HOME:-$OOS_AB_ORACLE_HOME}
 
+
+#Classpath detection for ojdbc5.jar
+OOS_AB_CLASSPATH_OJDBC5="$ORACLE_HOME/jdbc/lib/ojdbc5.jar"
+if [ ! -f "$OOS_AB_CLASSPATH_OJDBC5" ]; then
+
+  #Test for Directory
+  OOS_AB_CLASSPATH_OJDBC5="$ORACLE_HOME/ojdbc5.jar"
+  if [ ! -f "$OOS_AB_CLASSPATH_OJDBC5" ]; then
+    #Set to null and will be picked up in validation
+    OOS_AB_CLASSPATH_OJDBC5=
+  fi
+fi
 
 # *** Validate Configuration ***
 OOS_AB_CONFIG_VALID=Y
-[[ -z "$OOS_AB_ORACLE_SID" ]] && echo "Missing: OOS_AB_ORACLE_SID"; OOS_AB_CONFIG_VALID=N
-[[ -z "$OOS_AB_ORACLE_USERNAME" ]] && echo "Missing: OOS_AB_ORACLE_USERNAME"; OOS_AB_CONFIG_VALID=N
-[[ -z "$OOS_AB_ORACLE_PASSWORD" ]] && echo "Missing: OOS_AB_ORACLE_PASSWORD"; OOS_AB_CONFIG_VALID=N
-[[ -z "$OOS_AB_TNS_PORT" ]] && echo "Missing: OOS_AB_TNS_PORT"; OOS_AB_CONFIG_VALID=N
-[[ -z "$OOS_AB_ORACLE_HOST" ]] && echo "Missing: OOS_AB_ORACLE_HOST"; OOS_AB_CONFIG_VALID=N
+echo;
 
-if [ -z "$var" ]; then
+if [ -z "$OOS_AB_ORACLE_SID" ]; then
+  echo "Missing: OOS_AB_ORACLE_SID";
+  OOS_AB_CONFIG_VALID=N
+fi
+if [ -z "$OOS_AB_ORACLE_USERNAME" ]; then
+  echo "Missing: OOS_AB_ORACLE_USERNAME";
+  OOS_AB_CONFIG_VALID=N
+fi
+if [ -z "$OOS_AB_ORACLE_PASSWORD" ]; then
+  echo "Missing: OOS_AB_ORACLE_PASSWORD";
+  OOS_AB_CONFIG_VALID=N
+fi
+if [ -z "$OOS_AB_TNS_PORT" ]; then
+  echo "Missing: OOS_AB_TNS_PORT";
+  OOS_AB_CONFIG_VALID=N
+fi
+if [ -z "$OOS_AB_ORACLE_HOST" ]; then
+  echo "Missing: OOS_AB_ORACLE_HOST";
+  OOS_AB_CONFIG_VALID=N
+fi
+
+
+
+if [ -z "$OOS_AB_APEX_EXPORT_JAVA_DIR" ]; then
   echo "Missing: OOS_AB_APEX_EXPORT_JAVA_DIR"
   OOS_AB_CONFIG_VALID=N
 else
@@ -53,11 +84,23 @@ if [ ! -d "$ORACLE_HOME" ]; then
   OOS_AB_CONFIG_VALID=N
 fi
 
+if [ -z "$OOS_AB_CLASSPATH_OJDBC5" ]; then
+  echo "Error: Could not find path to ojdbc5.jar. Check ORACLE_HOME ($ORACLE_HOME) configuration";
+  OOS_AB_CONFIG_VALID=N
+fi
+
+
+if [ "$OOS_AB_CONFIG_VALID" = "N" ]; then
+  echo;
+  echo "*** Errors detected, exiting ***"
+  return
+fi
 
 
 
 # ****** PATHS *********
-export CLASSPATH=$CLASSPATH:$ORACLE_HOME/jdbc/lib/ojdbc5.jar:$OOS_AB_APEX_EXPORT_JAVA_DIR
+# TODO: Detect location of ojdbc5
+export CLASSPATH=$CLASSPATH:$OOS_AB_CLASSPATH_OJDBC5:$OOS_AB_APEX_EXPORT_JAVA_DIR
 
 
 #TODO remove
@@ -74,6 +117,7 @@ if [ "$OOS_AB_DEBUG_YN" = "Y" ]; then
   echo OOS_AB_BACKUP_DIR: $OOS_AB_BACKUP_DIR
   echo OOS_AB_ORACLE_HOME: $OOS_AB_ORACLE_HOME
   echo ORACLE_HOME: $ORACLE_HOME
+  echo OOS_AB_CLASSPATH_OJDBC5: $OOS_AB_CLASSPATH_OJDBC5
   echo CLASSPATH: $CLASSPATH
 fi;
 
