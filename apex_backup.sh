@@ -1,12 +1,21 @@
 #!/bin/bash
-#See TODO link for license
+#License: https://github.com/OraOpenSource/apexbackup/blob/master/LICENSE
 #Original content taken from http://www.talkapex.com
 
 #Parameters
 # 1: backup location (optional). This will overwrite OOS_AB_BACKUP_DIR
 
+OOS_AB_START_DIR=$PWD
+
 # Load Configurations
 source ./config.properties
+
+# Load custom properties
+if [ -f "./custom.properties" ]; then
+  echo "Loading custom properties"
+  source ./custom.properties
+fi
+
 
 #Load optional parameters
 OOS_AB_BACKUP_DIR=${1:-$OOS_AB_BACKUP_DIR}
@@ -34,82 +43,15 @@ if [ ! -f "$OOS_AB_CLASSPATH_OJDBC5" ]; then
 fi
 
 # *** Validate Configuration ***
-OOS_AB_CONFIG_VALID=Y
-echo;
 
-if [ -z "$OOS_AB_ORACLE_SID" ]; then
-  echo "Missing: OOS_AB_ORACLE_SID";
-  OOS_AB_CONFIG_VALID=N
-fi
-if [ -z "$OOS_AB_ORACLE_USERNAME" ]; then
-  echo "Missing: OOS_AB_ORACLE_USERNAME";
-  OOS_AB_CONFIG_VALID=N
-fi
-if [ -z "$OOS_AB_ORACLE_PASSWORD" ]; then
-  echo "Missing: OOS_AB_ORACLE_PASSWORD";
-  OOS_AB_CONFIG_VALID=N
-fi
-if [ -z "$OOS_AB_TNS_PORT" ]; then
-  echo "Missing: OOS_AB_TNS_PORT";
-  OOS_AB_CONFIG_VALID=N
-fi
-if [ -z "$OOS_AB_ORACLE_HOST" ]; then
-  echo "Missing: OOS_AB_ORACLE_HOST";
-  OOS_AB_CONFIG_VALID=N
-fi
-
-
-
-if [ -z "$OOS_AB_APEX_EXPORT_JAVA_DIR" ]; then
-  echo "Missing: OOS_AB_APEX_EXPORT_JAVA_DIR"
-  OOS_AB_CONFIG_VALID=N
-else
-  if [ ! -d "$OOS_AB_APEX_EXPORT_JAVA_DIR" ]; then
-    echo "OOS_AB_APEX_EXPORT_JAVA_DIR: Path does not exist"
-    OOS_AB_CONFIG_VALID=N
-  elif [ ! -f "$OOS_AB_APEX_EXPORT_JAVA_DIR/oracle/apex/APEXExport.class" ]; then
-    echo "APEXEport.class file not found in $OOS_AB_APEX_EXPORT_JAVA_DIR"
-    OOS_AB_CONFIG_VALID=N
-  fi
-fi
-
-
-if [ ! -d "$OOS_AB_BACKUP_DIR" ]; then
-  echo "OOS_AB_BACKUP_DIR: Path does not exist"
-  OOS_AB_CONFIG_VALID=N
-fi
-
-if [ ! -d "$ORACLE_HOME" ]; then
-  echo "ORACLE_HOME: Path does not exist"
-  OOS_AB_CONFIG_VALID=N
-fi
-
-if [ -z "$OOS_AB_CLASSPATH_OJDBC5" ]; then
-  echo "Error: Could not find path to ojdbc5.jar. Check ORACLE_HOME ($ORACLE_HOME) configuration";
-  OOS_AB_CONFIG_VALID=N
-fi
-
-
-if [ "$OOS_AB_CONFIG_VALID" = "N" ]; then
-  echo;
-  echo "*** Errors detected, exiting ***"
-  return
-fi
-
-
-
-# ****** PATHS *********
-# TODO: Detect location of ojdbc5
-export CLASSPATH=$CLASSPATH:$OOS_AB_CLASSPATH_OJDBC5:$OOS_AB_APEX_EXPORT_JAVA_DIR
-
-
-#TODO remove
-OOS_AB_DEBUG_YN=Y
+source ./apex_backup_validations.sh
 
 if [ "$OOS_AB_DEBUG_YN" = "Y" ]; then
+  echo OOS_AB_START_DIR: $OOS_AB_START_DIR
   echo OOS_AB_ORACLE_SID: $OOS_AB_ORACLE_SID
   echo OOS_AB_ORACLE_USERNAME: $OOS_AB_ORACLE_USERNAME
-  echo OOS_AB_ORACLE_PASSWORD: $OOS_AB_ORACLE_PASSWORD
+  # Don't echo password echo OOS_AB_ORACLE_PASSWORD: $OOS_AB_ORACLE_PASSWORD
+  [[ -z "$OOS_AB_ORACLE_PASSWORD" ]] && echo "OOS_AB_ORACLE_PASSWORD: <blank>" || echo "OOS_AB_ORACLE_PASSWORD: ****"
   echo OOS_AB_TNS_PORT: $OOS_AB_TNS_PORT
   echo OOS_AB_ORACLE_HOST: $OOS_AB_ORACLE_HOST
   echo OOS_AB_APEX_EXPORT_JAVA_DIR: $OOS_AB_APEX_EXPORT_JAVA_DIR
@@ -118,17 +60,27 @@ if [ "$OOS_AB_DEBUG_YN" = "Y" ]; then
   echo OOS_AB_ORACLE_HOME: $OOS_AB_ORACLE_HOME
   echo ORACLE_HOME: $ORACLE_HOME
   echo OOS_AB_CLASSPATH_OJDBC5: $OOS_AB_CLASSPATH_OJDBC5
+fi;
+
+
+if [ "$OOS_AB_CONFIG_VALID" = "N" ]; then
+  echo;
+  echo "*** Errors detected (see above for details) ***"
+  return
+fi
+
+
+
+
+# ****** PATHS *********
+export CLASSPATH=$CLASSPATH:$OOS_AB_CLASSPATH_OJDBC5:$OOS_AB_APEX_EXPORT_JAVA_DIR
+
+if [ "$OOS_AB_DEBUG_YN" = "Y" ]; then
   echo CLASSPATH: $CLASSPATH
 fi;
 
 
-# ****** Other *********
-OOS_AB_START_DIR=$PWD
 
-
-# *** Parameter Validation ***
-# TODO user must either be SYSTEM OR have APEX_ADMINISTRATOR_ROLE role
-# TODO USER_ROLE_PRIVS
 
 # ****** Directory Setup ******
 # Create temp bacpkup location
