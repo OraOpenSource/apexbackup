@@ -7,6 +7,19 @@
 
 OOS_AB_START_DIR=$PWD
 
+#Find location of script
+#http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in
+OOS_AB_SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$OOS_AB_SOURCE" ]; do # resolve $OOS_AB_SOURCE until the file is no longer a symlink
+  OOS_AB_SOURCE_DIR="$( cd -P "$( dirname "$OOS_AB_SOURCE" )" && pwd )"
+  OOS_AB_SOURCE="$(readlink "$OOS_AB_SOURCE")"
+  [[ $OOS_AB_SOURCE != /* ]] && OOS_AB_SOURCE="$OOS_AB_SOURCE_DIR/$OOS_AB_SOURCE" # if $OOS_AB_SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+OOS_AB_SOURCE_DIR="$( cd -P "$( dirname "$OOS_AB_SOURCE" )" && pwd )"
+
+# Go to source script directory
+cd $OOS_AB_SOURCE_DIR
+
 # Load Configurations
 source ./config.properties
 
@@ -98,7 +111,7 @@ java oracle.apex.APEXExport -db $OOS_AB_ORACLE_HOST:$OOS_AB_TNS_PORT:$OOS_AB_ORA
 
 
 # Generate listing of Workspaces and Applications
-sqlplus $OOS_AB_ORACLE_USERNAME/$OOS_AB_ORACLE_PASSWORD@$OOS_AB_ORACLE_HOST:$OOS_AB_TNS_PORT/$OOS_AB_ORACLE_SID @$OOS_AB_START_DIR/apex_backup_report.sql $OOS_AB_REPORT_FILENAME
+sqlplus $OOS_AB_ORACLE_USERNAME/$OOS_AB_ORACLE_PASSWORD@$OOS_AB_ORACLE_HOST:$OOS_AB_TNS_PORT/$OOS_AB_ORACLE_SID @$OOS_AB_SOURCE_DIR/apex_backup_report.sql $OOS_AB_REPORT_FILENAME
 
 # Back to start location
 cd $OOS_AB_START_DIR
