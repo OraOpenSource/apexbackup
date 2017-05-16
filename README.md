@@ -1,4 +1,8 @@
-[![Analytics](https://ga-beacon.appspot.com/UA-59573016-4/apexbackup/README.md)](https://github.com/igrigorik/ga-beacon)
+# DEPRECATED
+
+
+I'm no longer supporting these scripts as [SQLcl](http://www.oracle.com/technetwork/developer-tools/sqlcl/overview/index.html) has built in functionality that handles the export in one simple command. [This post](https://www.insum.ca/oracle-apex-deployments-youre-doing-it-wrong/) covers how to use SQLcl and its `apex export` command.
+
 # Oracle APEX Backup Script
 
 
